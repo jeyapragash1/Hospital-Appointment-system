@@ -1,2 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/HospitalAppointmentSystem"/>
+<Context path="/HospitalAppointmentSystem">
+	<!-- Configure a JNDI DataSource for the application -->
+	<Resource name="jdbc/hospitalappointmentsystem" auth="Container"
+			  type="javax.sql.DataSource"
+			  maxTotal="20" maxIdle="10" maxWaitMillis="10000"
+			  username="root" password=""
+			  driverClassName="com.mysql.cj.jdbc.Driver"
+			  url="jdbc:mysql://localhost:3306/hospitalappointmentsystem?serverTimezone=UTC"/>
+</Context>

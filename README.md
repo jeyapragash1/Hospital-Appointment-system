@@ -1,41 +1,68 @@
 # Hospital Appointment Booking System
 
-The Hospital Appointment Booking System is a web-based application designed to streamline the appointment scheduling process between patients and doctors. This system automates appointment management, reducing administrative workload and enhancing the patient experience. The platform allows patients to book, reschedule, and cancel appointments online while ensuring data security and 24/7 availability.
+A lightweight Java web application (JSP/Servlet + JDBC) for managing hospital appointments between patients and doctors.
+
+This README documents how to set up and run the project as it exists in the repository (NetBeans/Ant layout), plus important security and development notes.
+
+## Quick overview
+- Web UI: JSP pages under `web/`
+- Server code: Java servlets and helpers under `src/java/com/hospitalappointment/`
+- Build/project: NetBeans (Ant) configuration in `nbproject/`
+- Database: MySQL (schema & sample data in `hospitalappointmentsystem.sql`)
 
 ## Features
+- Patient registration and login
+- Book, reschedule and cancel appointments
+- Doctor and department management (admin pages)
+- Appointment history views
+- Simple payment recording (demo/testing only)
 
-### Core Features:
-- **Online Appointment Booking**: Patients can schedule appointments with their preferred doctor and department.
-- **Appointment Rescheduling and Cancellation**: Allows patients to modify or cancel appointments easily.
-- **Available Slots View**: Patients can view available appointment slots before booking.
-- **Automated Reminders**: Patients receive reminders for upcoming appointments via email or SMS.
-- **Doctor and Department Search**: Patients can search for doctors by specialization and department.
-- **Patient Profile Management**: Patients can manage their profile details and view appointment history.
-- **Appointment History and Reports**: Patients can access a detailed history of their appointments.
+## Technology (actual)
+- Front-end: HTML, CSS, Bootstrap, JSP
+- Back-end: Java Servlets (no Spring framework)
+- Data access: plain JDBC (no Hibernate/ORM)
+- Database: MySQL
 
-### User Roles:
-1. **Patients**: Can register, book, reschedule, cancel appointments, and manage profiles.
-2. **Doctors**: Can view appointments, update availability, and manage patient schedules.
-3. **Administrative Staff**: Manage appointments, doctor availability, and system settings.
+## Setup — database
+1. Import the schema and sample data in `hospitalappointmentsystem.sql` into your MySQL server. Example (MySQL CLI):
 
-### Non-Functional Requirements:
-- **User-Friendly**: The system provides an intuitive and responsive interface using HTML, CSS, and Bootstrap.
-- **Speed**: Efficient processing to ensure quick response times for booking and cancellations.
-- **Reliability**: Available 24/7 with a focus on uptime and consistency.
-- **Security**: Data protection measures to secure confidential patient information.
+```sql
+SOURCE hospitalappointmentsystem.sql;
+```
 
-## Technology Stack
+2. Update database credentials before running in production. The project attempts a JNDI DataSource lookup at `java:comp/env/jdbc/hospitalappointmentsystem` (see `web/META-INF/context.xml`). If absent, it falls back to a DriverManager connection — edit `src/java/com/hospitalappointment/DatabaseConnection.java` or `web/META-INF/context.xml` accordingly.
 
-- **Front-End**: HTML, CSS, Bootstrap
-- **Back-End**: Java (Spring Boot)
-- **Database**: MySQL
-- **ORM**: Hibernate (for database interaction)
-  
+## Running locally (NetBeans)
+1. Open NetBeans → `File` → `Open Project...` and select the project folder.
+2. Ensure a servlet container (Tomcat/GlassFish) is configured in NetBeans.
+3. Ensure MySQL is running and `hospitalappointmentsystem` schema is imported.
+4. Add required libraries to project classpath (see Dependencies below).
+5. Run the project from NetBeans (it will deploy to the configured server).
 
-## Explain
-- there is don't have classes and not properly use oop concepts
+## Dependencies
+- MySQL Connector/J (Connector/J) — make sure `mysql-connector-java` JAR is on the classpath.
+- jBCrypt (`org.mindrot.jbcrypt`) — project uses BCrypt for password hashing; include the JAR in project libraries.
 
-Feel free to explore the code, contribute, and enhance this project!
+## Security & important notes
+- Passwords: The updated code uses BCrypt; ensure all passwords in the DB are bcrypt-hashed. Do not store plaintext passwords.
+- Payments: The sample app historically stored full card data and CVV. For safety the code now masks card numbers and does not store CVV — this repository is NOT PCI-compliant. Integrate a secure, tokenizing payment gateway (Stripe, PayPal, etc.) for production.
+- DB credentials: Do NOT use the MySQL `root` account in production. Configure a dedicated DB user and store credentials in `web/META-INF/context.xml` or environment variables.
+- Avoid scriptlets: Many JSPs contain inline JDBC logic. For maintainability and security, move business logic into servlets/controllers and use JSP/EL + JSTL for views.
+
+## Development suggestions (next steps)
+1. Complete refactor to MVC: move DB logic out of JSPs to servlets or a service layer.
+2. Add connection pooling (Tomcat DataSource or HikariCP) via `context.xml`.
+3. Add input validation and output encoding to prevent XSS and injection.
+4. Add CSRF tokens for state-changing forms.
+5. Add basic unit/integration tests for core services (User, Appointment).
+
+## Files of interest
+- `web/` — JSP pages and static assets
+- `src/java/com/hospitalappointment/` — servlets and helpers (login/register, DB connection)
+- `web/META-INF/context.xml` — example JNDI DataSource
+- `hospitalappointmentsystem.sql` — schema and sample data
 
 ## Contact
-For any inquiries, reach me at [kishojeyapragash15@gmail.com](mailto:kishojeyapragash15@gmail.com).
+If you want me to make any of the suggested code changes (fix registration/login flow, refactor JSPs, remove remaining CVV storage, add DataSource setup, or add tests), tell me which task to start next.
+
+Contact: kishojeyapragash15@gmail.com

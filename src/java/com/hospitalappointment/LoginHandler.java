@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.mindrot.jbcrypt.BCrypt;
 
 @WebServlet("/LoginHandler")
 public class LoginHandler extends HttpServlet {
@@ -27,24 +28,33 @@ public class LoginHandler extends HttpServlet {
             // Initialize database connection
             conn = DatabaseConnection.initializeDatabase();
 
-            // Check user credentials
-            String query = "SELECT * FROM user WHERE email = ? AND password = ?";
+            // Select user by email
+            String query = "SELECT user_id, username, password, role FROM users WHERE email = ?";
             ps = conn.prepareStatement(query);
             ps.setString(1, email);
-            ps.setString(2, password); // Note: In real applications, hash the password
             rs = ps.executeQuery();
 
             if (rs.next()) {
-                // Create session and set user attributes
-                HttpSession session = request.getSession();
-                session.setAttribute("user", rs.getString("name"));
-                session.setAttribute("role", rs.getString("role"));
-                response.sendRedirect("dashboard.jsp");
-            } else {
-                // Invalid login
-                response.sendRedirect("login.jsp?error=Invalid+email+or+password");
+                String hashed = rs.getString("password");
+                if (hashed != null && BCrypt.checkpw(password, hashed)) {
+                    HttpSession session = request.getSession();
+                    session.setAttribute("user", rs.getString("user_id"));
+                    session.setAttribute("role", rs.getString("role"));
+                    String role = rs.getString("role");
+                    if ("admin".equalsIgnoreCase(role)) {
+                        response.sendRedirect("adminDashboard.jsp");
+                    } else if ("doctor".equalsIgnoreCase(role)) {
+                        response.sendRedirect("doctorDashboard.jsp");
+                    } else {
+                        response.sendRedirect("patientDashboard.jsp");
+                    }
+                    return;
+                }
             }
-        } catch (SQLException e) {
+
+            // Invalid login
+            response.sendRedirect("login.jsp?error=Invalid+email+or+password");
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             response.sendRedirect("login.jsp?error=An+error+occurred");
         } finally {

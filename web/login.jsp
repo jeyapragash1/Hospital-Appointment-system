@@ -1,5 +1,4 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -110,53 +109,12 @@
     
     <h2>Login</h2>
     <%
-        String message = "";
-        if (request.getParameter("submit") != null) {
-            String email = request.getParameter("username"); // Email as the username
-            String password = request.getParameter("password");
-
-            Connection conn = null;
-            try {
-                // Load JDBC driver
-                Class.forName("com.mysql.jdbc.Driver");
-
-                // Establish connection
-                conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/hospitalappointmentsystem", "root", "");
-
-                // Select the user with the provided email
-                PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE email = ? AND password = ?");
-                ps.setString(1, email);
-                ps.setString(2, password);
-                ResultSet rs = ps.executeQuery();
-
-                if (rs.next()) {
-                    String role = rs.getString("role");
-
-                    session.setAttribute("user", rs.getString("user_id"));
-                    session.setAttribute("role", role);
-
-                    // Redirect based on role
-                    if ("admin".equals(role)) {
-                        response.sendRedirect("adminDashboard.jsp");
-                    } else if ("doctor".equals(role)) {
-                        response.sendRedirect("doctorDashboard.jsp");
-                    } else if ("patient".equals(role)) {
-                        response.sendRedirect("patientDashboard.jsp");
-                    }
-                } else {
-                    message = "Invalid email or password.";
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                message = "Database connection error: " + e.getMessage();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                message = "JDBC Driver not found: " + e.getMessage();
-            } finally {
-                if (conn != null) {
-                    try { conn.close(); } catch (SQLException ignore) {}
-                }
-            }
+        // Login handled by /LoginHandler servlet.
+        String message = null;
+        if (request.getParameter("success") != null) {
+            message = request.getParameter("success");
+        } else if (request.getParameter("error") != null) {
+            message = request.getParameter("error");
         }
     %>
     <form action="LoginHandler" method="post">

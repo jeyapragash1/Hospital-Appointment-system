@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*" %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -127,63 +127,12 @@
    
     <h2>Create an Account</h2>
     <%
-        String message = "";
-        boolean registrationSuccess = false;
-        if (request.getParameter("submit") != null) {
-            String username = request.getParameter("username");
-            String email = request.getParameter("email");
-            String password = request.getParameter("password");
-            String role = "patient"; // Default role, could be selectable
-
-            Connection conn = null;
-            try {
-                // Load JDBC driver
-                Class.forName("com.mysql.jdbc.Driver");
-
-                // Establish connection
-                conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/hospitalappointmentsystem", "root", "");
-
-                // Check if the username or email is already registered
-                PreparedStatement psCheck = conn.prepareStatement("SELECT * FROM users WHERE username = ? OR email = ?");
-                psCheck.setString(1, username);
-                psCheck.setString(2, email);
-                ResultSet rs = psCheck.executeQuery();
-
-                if (rs.next()) {
-                    message = "This username or email is already registered. Please log in.";
-                } else {
-                    PreparedStatement ps = conn.prepareStatement("INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)");
-                    ps.setString(1, username);
-                    ps.setString(2, password);  // Store plain text password (not recommended)
-                    ps.setString(3, email);
-                    ps.setString(4, role);
-                    int i = ps.executeUpdate();
-
-                    if (i > 0) {
-                        registrationSuccess = true;
-                    } else {
-                        message = "Error occurred during registration.";
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                message = "Database connection error: " + e.getMessage();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                message = "JDBC Driver not found: " + e.getMessage();
-            } finally {
-                if (conn != null) {
-                    try {
-                        conn.close();
-                    } catch (SQLException ignore) {
-                    }
-                }
-            }
-        }
-
-        if (registrationSuccess) {
-            // Redirect to login page with success message
-            out.println("<script>redirectToLogin();</script>");
+        // Registration is handled by /RegisterHandler servlet.
+        String message = null;
+        if (request.getParameter("success") != null) {
+            message = "Registration successful. Please log in.";
+        } else if (request.getParameter("error") != null) {
+            message = request.getParameter("error");
         }
     %>
    <form action="RegisterHandler" method="post">
@@ -199,7 +148,7 @@
     <input type="submit" value="Register">
 </form>
 
-    <p class="<%= registrationSuccess ? "success-message" : "error-message" %>"><%= message %></p>
+    <p class="<%= (request.getParameter("success") != null) ? "success-message" : "error-message" %>"><%= message == null ? "" : message %></p>
     <p>Already registered? <a href="login.jsp">Log in here</a>.</p>
 </div>
 
